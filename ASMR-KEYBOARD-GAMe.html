@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>ASMR Keyboard Game++</title>
+<style>
+  :root {
+    --color-accent: #3f51b5;
+    --color-bg: #0e0e0e;
+    --color-text: #e0e0e0;
+    --font-primary: 'Poppins', sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, 
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  background: url('https://images.unsplash.com/photo-1506744038136-46273834b3fb') no-repeat center center fixed;
+  background-size: cover;
+  color: white;
+  overflow: hidden;
+}
+
+  #letter-container {
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #111 0%, #1a1a1a 100%);
+  }
+  .floating-letter {
+    position: absolute;
+    font-weight: 700;
+    pointer-events: none;
+    animation-fill-mode: forwards;
+    user-select: none;
+    filter: drop-shadow(0 0 6px var(--color-accent));
+    white-space: pre;
+    text-align: center;
+    transition: transform 0.3s ease;
+    will-change: transform, opacity, filter;
+  }
+  @keyframes floatUp {
+    0% { transform: translateY(0) scale(1) rotate(0deg) skew(0deg, 0deg); opacity: 1; }
+    100% { transform: translateY(-100px) scale(1.3) rotate(0deg) skew(0deg, 0deg); opacity: 0; }
+  }
+  @keyframes rotateFade {
+    0% { transform: rotate(0deg) scale(1) skew(0deg, 0deg); opacity: 1; }
+    100% { transform: rotate(360deg) scale(2) skew(0deg, 0deg); opacity: 0; }
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+  }
+  #settings-panel {
+    position: fixed;
+    top: 0; left: 0;
+    height: 100%; width: 460px;
+    background: rgba(15, 15, 15, 0.98);
+    color: var(--color-text);
+    padding: 2rem;
+    overflow-y: auto;
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    border-radius: 0 14px 14px 0;
+  }
+  #settings-panel.show { transform: translateX(0); }
+  #toggle-settings-btn {
+    position: fixed;
+    top: 15px; left: 10px;
+    background: var(--color-accent);
+    color: white;
+    padding: 0.5rem 0.8rem;
+    font-size: 1.5rem;
+    border: none; border-radius: 8px;
+    cursor: pointer; z-index: 1100;
+    box-shadow: 0 0 12px var(--color-accent);
+  }
+  h3, h4 {
+    color: var(--color-accent);
+    margin-bottom: 0.5rem;
+  }
+  section.setting-group {
+    margin-bottom: 2rem;
+    background: #1c1c1c;
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 0 12px rgba(0,0,0,0.5);
+  }
+  label {
+    display: block; margin: 0.6rem 0 0.2rem;
+  }
+  input, select {
+    width: 100%; padding: 0.5rem;
+    border-radius: 6px; border: none;
+    font-family: var(--font-primary);
+    background: #333; color: #eee;
+  }
+  input[type="color"] { padding: 0.2rem; }
+  .sound-entry {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px; background: #282828; margin: 4px 0; border-radius: 6px;
+  }
+  .sound-entry span { flex-grow: 1; }
+  .sound-entry .favorite {
+    cursor: pointer; color: #ccc;
+  }
+  .sound-entry .favorite.active { color: gold; }
+  footer {
+    text-align: center;
+    background: var(--color-accent);
+    color: white;
+    font-size: 0.9rem;
+    padding: 0.6rem;
+    box-shadow: 0 -2px 12px var(--color-accent);
+  }
+  /* Trail effect */
+  .trail {
+    position: absolute;
+    pointer-events: none;
+    user-select: none;
+    filter: drop-shadow(0 0 12px var(--color-accent));
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
+  }
+
+/* Fullscreen settings panel design */
+
+
+
+#settings-panel.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #111;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  padding: 1.5rem 2rem;
+  overflow-y: auto;
+  z-index: 1001;
+  align-content: start;
+}
+        
+        
+        
+#settings-panel.fullscreen h3 {
+  margin-top: 1.5rem;
+}
+#settings-panel.fullscreen .setting-group {
+  flex: 1;
+  margin-bottom: 1.5rem;
+  background: rgba(34, 34, 34, 0.95);
+  border: 1px solid #444;
+  padding: 1rem 1.2rem;
+  border-radius: 12px;
+  box-shadow: 0 0 18px rgba(0,0,0,0.4);
+}
+input[type="checkbox"] {
+  accent-color: var(--color-accent);
+  transform: scale(1.15);
+  margin-right: 8px;
+}
+
+    /* Inline checkbox label fix */
+    label > input[type="checkbox"] {
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    label {
+      display: flex;
+      align-items: center;
+      gap: 0.4em;
+    }
+    
+
+
+
+#settings-panel.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #111;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  padding: 1.5rem 2rem;
+  overflow-y: auto;
+  z-index: 1001;
+  align-content: start;
+}
+        
+        
+        
+#settings-panel.fullscreen .setting-group {
+  max-height: unset;
+  overflow: visible;
+}
+#settings-panel.fullscreen h3 {
+  grid-column: span 2;
+  font-size: 1.6rem;
+  margin-top: 0;
+}
+#settings-panel.fullscreen .setting-group label {
+  margin-bottom: 0.5rem;
+}
+
+
+/* Improve setting UI */
+.setting-group {
+  padding: 1.2rem;
+  border-radius: 12px;
+  background-color: #1a1a1a;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+
+.setting-group h3 {
+  font-size: 1.4rem;
+  margin-bottom: 0.5rem;
+  color: var(--color-accent);
+  border-bottom: 1px solid #444;
+  padding-bottom: 0.3rem;
+}
+
+.setting-group label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0.6rem 0;
+  gap: 1rem;
+  background: #222;
+  padding: 0.5rem 0.8rem;
+  border-radius: 6px;
+}
+
+.setting-group label span {
+  flex: 1;
+  text-align: left;
+  font-size: 0.95rem;
+}
+
+.setting-group input[type="range"],
+.setting-group input[type="color"],
+.setting-group input[type="file"],
+.setting-group select {
+  width: 50%;
+  max-width: 200px;
+  border: 1px solid #555;
+}
+
+.setting-group input[type="checkbox"] {
+  margin-left: auto;
+  transform: scale(1.2);
+}
+
+/* Info blocks */
+details.info {
+  background: #111;
+  border: 1px solid #333;
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #aaa;
+}
+details.info summary {
+  cursor: pointer;
+  color: var(--color-accent);
+  font-weight: bold;
+}
+
+
+/* Label alignment */
+.setting-group label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* Label children layout */
+.setting-group label span.label-text {
+  flex: 1;
+  font-size: 0.95rem;
+}
+
+.setting-group label .input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+/* Info icon button */
+.info-icon {
+  background: none;
+  border: none;
+  color: var(--color-accent);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 0.3rem;
+}
+.info-icon:hover {
+  color: #fff;
+}
+
+/* Tooltip content */
+.tooltip-text {
+  display: none;
+  position: absolute;
+  background-color: #111;
+  border: 1px solid #444;
+  padding: 6px 10px;
+  border-radius: 6px;
+  color: #ccc;
+  font-size: 0.8rem;
+  z-index: 9999;
+  max-width: 220px;
+  white-space: normal;
+}
+.tooltip-wrap {
+  position: relative;
+}
+.tooltip-wrap:hover .tooltip-text {
+  display: block;
+}
+
+
+.collapsible-group {
+  border: 1px solid #333;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  background-color: #1a1a1a;
+  padding: 0.5rem 0.8rem;
+}
+.collapsible-group summary {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: var(--color-accent);
+  cursor: pointer;
+  margin-bottom: 0.6rem;
+}
+.collapsible-group[open] summary {
+  border-bottom: 1px solid #333;
+  padding-bottom: 0.5rem;
+}
+
+
+
+
+
+#settings-panel.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #111;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  padding: 1.5rem 2rem;
+  overflow-y: auto;
+  z-index: 1001;
+  align-content: start;
+}
+        
+        
+        
+
+
+.setting-group {
+  min-width: 240px;
+}
+</style>
+</head>
+<body>
+<main id="letter-container"></main>
+<button id="toggle-settings-btn" title="Toggle Settings Panel">☰</button>
+<aside aria-label="Settings Panel" id="settings-panel" role="region" tabindex="-1"><section class="setting-group"><details class="collapsible-group" open="True"><summary>Presets &amp; Settings</summary><button id="saveSettingsBtn" style="margin: 0.5rem 0.5rem 0 0; padding: 0.5rem 1rem; font-size: 0.95rem; background: #333; color: var(--color-text); border: 1px solid #555; border-radius: 6px; cursor: pointer;" type="button">Save Settings</button><button id="loadSettingsBtn" style="margin: 0.5rem 0.5rem 0 0; padding: 0.5rem 1rem; font-size: 0.95rem; background: #333; color: var(--color-text); border: 1px solid #555; border-radius: 6px; cursor: pointer;" type="button">Load Settings</button><button id="resetSettingsBtn" style="margin: 0.5rem 0.5rem 0 0; padding: 0.5rem 1rem; font-size: 0.95rem; background: #333; color: var(--color-text); border: 1px solid #555; border-radius: 6px; cursor: pointer;" type="button">Reset to Default</button></details></section>
+<section class="setting-group"><details class="collapsible-group" open="True"><summary>Appearance</summary>
+<label for="panelDisplayMode">Settings Panel Display</label>
+<select id="panelDisplayMode">
+<option value="sidebar">Sidebar</option>
+<option value="fullscreen">Fullscreen</option>
+</select>
+<label><span class="label-text">Enable Simple Mode (only basic settings)</span><div class="input-wrap"><input id="simpleModeToggle" type="checkbox"/><span class="tooltip-wrap"><button class="info-icon" type="button">❔</button><span class="tooltip-text">Toggle simple mode to hide all but essential settings.</span></span></div></label>
+<label for="bgColor">Background Color</label>
+<input id="bgColor" type="color" value="#0e0e0e"/>
+<label for="bgGradientToggle"><span class="label-text">Enable Background Gradient</span><div class="input-wrap"><input id="bgGradientToggle" type="checkbox"/><span class="tooltip-wrap"><button class="info-icon" type="button">❔</button><span class="tooltip-text">Enable a background gradient instead of a flat color.</span></span></div></label>
+<label for="bgGradientStart">Gradient Start Color</label>
+<input id="bgGradientStart" type="color" value="#111111"/>
+<label for="bgGradientEnd">Gradient End Color</label>
+<input id="bgGradientEnd" type="color" value="#1a1a1a"/>
+<label for="accentColor">Accent Color</label>
+<input id="accentColor" type="color" value="#3f51b5"/>
+<label for="fontFamily">Font Family</label>
+<select id="fontFamily">
+<option value="'Poppins', sans-serif">Poppins</option>
+<option value="'Courier New', monospace">Courier New</option>
+<option value="'Arial Black', sans-serif">Arial Black</option>
+<option value="'Comic Sans MS', cursive">Comic Sans MS</option>
+<option value="'Georgia', serif">Georgia</option>
+</select>
+<label for="fontSize">Letter Size (px)</label>
+<input id="fontSize" max="160" min="16" type="range" value="80"/>
+<label for="randomizeSize"><span class="label-text">Randomize Size</span><div class="input-wrap"><input id="randomizeSize" type="checkbox"/><span class="tooltip-wrap"><button class="info-icon" type="button">❔</button><span class="tooltip-text">Randomize the size of each letter slightly.</span></span></div></label>
+<label for="fontWeight">Font Weight</label>
+<input id="fontWeight" max="900" min="100" step="100" type="range" value="700"/>
+<label for="letterColor">Letter Color</label>
+<input id="letterColor" type="color" value="#ffffff"/>
+<label><span class="label-text">Randomize Letter Colors</span><div class="input-wrap"><input id="randomizeColor" type="checkbox"/><span class="tooltip-wrap"><button class="info-icon" type="button">❔</button><span class="tooltip-text">Let each letter use a random color.</span></span></div></label>
+<label for="letterShadowColor">Letter Shadow Color</label>
+<input id="letterShadowColor" type="color" value="#3f51b5"/>
+<label><span class="label-text">Enable Glow Shadow</span><div class="input-wrap"><input checked="" id="enableShadow" type="checkbox"/><span class="tooltip-wrap"><button class="info-icon" type="button">❔</button><span class="tooltip-text">Turn on glowing shadow for letters.</span></span></div></label>
+<label for="glowIntensity">Glow Intensity</label>
+<input id="glowIntensity" max="20" min="0" type="range" value="6"/>
+<label for="letterBorderWidth">Letter Border Width (px)</label>
+<input id="letterBorderWidth" max="10" min="0" type="range" value="0"/>
+<label for="letterBorderColor">Letter Border Color</label>
+<input id="letterBorderColor" type="color" value="#ffffff"/>
+<label><span class="label-text">Enable Blur Effect</span><div class="input-wrap"><input id="enableBlur" type="checkbox"/><span class="tooltip-wrap"><button class="info-icon" type="button">❔</button><span class="tooltip-text">Slightly blur the letter for a dreamy look.</span></span></div></label>
+<label for="letterOpacity">Letter Opacity</label>
+<input id="opacity" max="1" min="0.1" step="0.05" type="range" value="1"/>
+<label for="letterSpacing">Letter Spacing (px)</label>
+<input id="letterSpacing" max="30" min="0" type="range" value="2"/>
+<label><span class="label-text">Letter Rotation (deg)</span><div class="input-wrap"><input id="letterRotation" max="360" min="0" type="range" value="0"/><span class="tooltip-wrap"><button class="info-icon" type="button">❔</button><span class="tooltip-text">Rotate each letter by a fixed amount.</span></span></div></label><label><span class="label-text">Z-Index Boost</span><div class="input-wrap"><input id="zBoost" max="360" min="0" type="range" value="0"/><span class="tooltip-wrap"><button class="info-icon" type="button">❔</button><span class="tooltip-text">Raise letters above UI elements using z-index.</span></span></div></label></details></section>
+<section class="setting-group"><details class="collapsible-group" open="true"><summary>Background &amp; Music</summary>
+<label for="backgroundUpload">Upload Background Image</label>
+<input accept="image/*" id="backgroundUpload" type="file"/>
+<label for="musicUpload">Upload Custom Music</label>
+<input accept="audio/*" id="musicUpload" type="file"/>
+<audio autoplay="" controls="" id="bgMusic" loop="" style="margin-top: 10px; width: 100%;"></audio>
+</details></section>
+<section class="setting-group"><details class="collapsible-group" open="True"><summary>Typing Mode &amp; History</summary>
+<label><span class="label-text">Type Random Words</span><div class="input-wrap"><input id="typeWords" type="checkbox"/><span class="tooltip-wrap"><button class="info-icon" type="button">❔</button><span class="tooltip-text">Automatically type random letters as words.</span></span></div></label>
+<label for="wordSpeed">Word Speed (letters/sec)</label>
+<input id="wordSpeed" max="20" min="1" type="range" value="5"/>
+<label><span class="label-text">Randomize Letter Case</span><div class="input-wrap"><input id="randomCaseToggle" type="checkbox"/><span class="tooltip-wrap"><button class="info-icon" type="button">❔</button><span class="tooltip-text">Switch between uppercase and lowercase randomly.</span></span></div></label>
+<label><span class="label-text">Snap to Grid</span><div class="input-wrap"><input id="gridSnap" type="checkbox"/><span class="tooltip-wrap"><button class="info-icon" type="button">❔</button><span class="tooltip-text">Snap letters to a grid instead of random.</span></span></div></label>
+<label for="gridSize">Grid Size (px)</label>
+<input id="gridSize" max="100" min="5" type="range" value="20"/>
+<label><span class="label-text">Show FPS Counter</span><div class="input-wrap"><input id="showFPS" type="checkbox"/><span class="tooltip-wrap"><button class="info-icon" type="button">❔</button><span class="tooltip-text">Show frames per second in top corner.</span></span></div></label>
+<label><span class="label-text">Enable Debug Mode</span><div class="input-wrap"><input id="debugMode" type="checkbox"/><span class="tooltip-wrap"><button class="info-icon" type="button">❔</button><span class="tooltip-text">Enable debug info and console logs.</span></span></div></label>
+<h4>Favorites &amp; History</h4>
+<div id="favoritesList" style="max-height: 100px; overflow-y: auto; background:#222; border-radius: 6px; padding: 4px; margin-bottom: 0.5rem;"></div>
+<div id="historyList" style="max-height: 100px; overflow-y: auto; background:#222; border-radius: 6px; padding: 4px;"></div>
+</details></section>
+<section class="setting-group"><details class="collapsible-group" open="True"><summary>Animation</summary>
+<label for="animationStyle">Animation Style</label>
+<select id="animationStyle">
+<option value="floatUp">Float Up</option>
+<option value="rotateFade">Rotate &amp; Fade</option>
+<option value="bounce">Bounce</option>
+</select>
+<label for="animationDuration">Animation Duration (ms)</label>
+<input id="animationDuration" max="8000" min="500" step="100" type="range" value="3000"/>
+<label for="animationSpeedMultiplier">Animation Speed Multiplier</label>
+<input id="animationSpeedMultiplier" max="5" min="0.1" step="0.1" type="range" value="1"/>
+<label for="animationRotationSpeed">Rotation Speed (deg per second)</label>
+<input id="animationRotationSpeed" max="720" min="0" type="range" value="360"/>
+<label for="animationSkewX">Skew X (deg)</label>
+<input id="animationSkewX" max="45" min="-45" type="range" value="0"/>
+<label for="animationSkewY">Skew Y (deg)</label>
+<input id="animationSkewY" max="45" min="-45" type="range" value="0"/>
+<label><span class="label-text">Reverse Animation Direction</span><div class="input-wrap"><input id="reverseDirection" type="checkbox"/><span class="tooltip-wrap"><button class="info-icon" type="button">❔</button><span class="tooltip-text">Play animation backward.</span></span></div></label>
+<label for="maxLetters">Max Letters on Screen</label>
+<input id="maxLetters" max="100" min="5" type="range" value="30"/>
+<label for="maxLettersPerSecond">Max Letters per Second</label>
+<input id="maxLettersPerSecond" max="60" min="1" type="range" value="10"/>
+<label><span class="label-text">Auto Clear Letters</span><div class="input-wrap"><input id="autoClearToggle" type="checkbox"/><span class="tooltip-wrap"><button class="info-icon" type="button">❔</button><span class="tooltip-text">Automatically clear letters after some time.</span></span></div></label>
+<label for="autoClearCooldown">Auto Clear Cooldown (ms)</label>
+<input id="autoClearCooldown" max="30000" min="1000" step="500" type="range" value="5000"/>
+<label><span class="label-text">Enable Neon Trail</span><div class="input-wrap"><input id="enableTrail" type="checkbox"/><span class="tooltip-wrap"><button class="info-icon" type="button">❔</button><span class="tooltip-text">Adds a glowing trail behind each letter.</span></span></div></label>
+<label for="trailLength">Trail Length (px)</label>
+<input id="trailLength" max="200" min="10" type="range" value="50"/>
+<label for="trailOpacity">Trail Opacity</label>
+<input id="trailOpacity" max="1" min="0" step="0.05" type="range" value="0.5"/>
+<label><span class="label-text">Wave Typing Mode</span><div class="input-wrap"><input id="waveMode" type="checkbox"/><span class="tooltip-wrap"><button class="info-icon" type="button">❔</button><span class="tooltip-text">Letters follow a wave motion.</span></span></div></label>
+<label for="waveAmplitude">Wave Amplitude (px)</label>
+<input id="waveAmplitude" max="100" min="0" type="range" value="40"/>
+<label for="waveFrequency">Wave Frequency (Hz)</label>
+<input id="waveFrequency" max="5" min="0.1" step="0.1" type="range" value="2"/>
+<label for="letterBounceToggle"><span class="label-text">Enable Letter Bounce on Spawn</span><div class="input-wrap"><input id="letterBounceToggle" type="checkbox"/><span class="tooltip-wrap"><button class="info-icon" type="button">❔</button><span class="tooltip-text">Bounce each letter when it appears.</span></span></div></label>
+</details></section>
+<section class="setting-group"><details class="collapsible-group" open="True"><summary>Sound &amp; Vibration</summary>
+<label><span class="label-text">Enable Sound</span><div class="input-wrap"><input checked="" id="enableSound" type="checkbox"/><span class="tooltip-wrap"><button class="info-icon" type="button">❔</button><span class="tooltip-text">Play a sound when typing.</span></span></div></label>
+<label for="soundVolume">Sound Volume</label>
+<input id="soundVolume" max="1" min="0" step="0.05" type="range" value="0.6"/>
+<label for="soundPlaybackRate">Sound Playback Rate</label>
+<input id="soundPlaybackRate" max="2" min="0.5" step="0.1" type="range" value="1"/>
+<label for="keyCooldown">Key Cooldown (ms)</label>
+<input id="cooldown" max="500" min="0" type="range" value="0"/>
+<label><span class="label-text">Enable Vibration on Keypress</span><div class="input-wrap"><input id="vibrateOnKey" type="checkbox"/><span class="tooltip-wrap"><button class="info-icon" type="button">❔</button><span class="tooltip-text">Make the device vibrate when typing.</span></span></div></label>
+<label for="soundUpload">Upload Sound</label>
+<input accept="audio/*" id="uploadSound" type="file"/>
+<div aria-live="polite" id="soundList" style="max-height: 150px; overflow-y: auto;"></div>
+</details></section>
+</aside>
+<footer>Supercharged by ChatGPT — June 2025</footer>
+<script>
+(() => {
+  // === DOM Elements ===
+  const letterContainer = document.getElementById('letter-container');
+  const settingsPanel = document.getElementById('settings-panel');
+  const toggleSettingsBtn = document.getElementById('toggle-settings-btn');
+
+  // Settings controls
+  const settingsControls = {
+    bgColor: document.getElementById('bgColor'),
+    bgGradientToggle: document.getElementById('bgGradientToggle'),
+    bgGradientStart: document.getElementById('bgGradientStart'),
+    bgGradientEnd: document.getElementById('bgGradientEnd'),
+    accentColor: document.getElementById('accentColor'),
+    fontFamily: document.getElementById('fontFamily'),
+    fontSize: document.getElementById('fontSize'),
+    randomizeSize: document.getElementById('randomizeSize'),
+    fontWeight: document.getElementById('fontWeight'),
+    letterColor: document.getElementById('letterColor'),
+    randomizeColor: document.getElementById('randomizeColor'),
+    letterShadowColor: document.getElementById('letterShadowColor'),
+    enableShadow: document.getElementById('enableShadow'),
+    glowIntensity: document.getElementById('glowIntensity'),
+    letterBorderWidth: document.getElementById('letterBorderWidth'),
+    letterBorderColor: document.getElementById('letterBorderColor'),
+    enableBlur: document.getElementById('enableBlur'),
+    opacity: document.getElementById('opacity'),
+    letterSpacing: document.getElementById('letterSpacing'),
+    animationStyle: document.getElementById('animationStyle'),
+    animationDuration: document.getElementById('animationDuration'),
+    animationSpeedMultiplier: document.getElementById('animationSpeedMultiplier'),
+    animationRotationSpeed: document.getElementById('animationRotationSpeed'),
+    animationSkewX: document.getElementById('animationSkewX'),
+    animationSkewY: document.getElementById('animationSkewY'),
+    reverseDirection: document.getElementById('reverseDirection'),
+    maxLetters: document.getElementById('maxLetters'),
+    maxLettersPerSecond: document.getElementById('maxLettersPerSecond'),
+    autoClearToggle: document.getElementById('autoClearToggle'),
+    autoClearCooldown: document.getElementById('autoClearCooldown'),
+    enableTrail: document.getElementById('enableTrail'),
+    trailLength: document.getElementById('trailLength'),
+    trailOpacity: document.getElementById('trailOpacity'),
+    waveMode: document.getElementById('waveMode'),
+    waveAmplitude: document.getElementById('waveAmplitude'),
+    waveFrequency: document.getElementById('waveFrequency'),
+    letterBounceToggle: document.getElementById('letterBounceToggle'),
+    enableSound: document.getElementById('enableSound'),
+    soundVolume: document.getElementById('soundVolume'),
+    soundPlaybackRate: document.getElementById('soundPlaybackRate'),
+    cooldown: document.getElementById('cooldown'),
+    vibrateOnKey: document.getElementById('vibrateOnKey'),
+    uploadSound: document.getElementById('uploadSound'),
+    soundList: document.getElementById('soundList'),
+    typeWords: document.getElementById('typeWords'),
+    wordSpeed: document.getElementById('wordSpeed'),
+    randomCaseToggle: document.getElementById('randomCaseToggle'),
+    gridSnap: document.getElementById('gridSnap'),
+    gridSize: document.getElementById('gridSize'),
+    showFPS: document.getElementById('showFPS'),
+    debugMode: document.getElementById('debugMode'),
+    favoritesList: document.getElementById('favoritesList'),
+    historyList: document.getElementById('historyList'),
+  
+    letterRotation: document.getElementById('letterRotation'),
+    zBoost: document.getElementById('zBoost'),
+};
+
+  // === State ===
+  const state = {
+    lettersOnScreen: 0,
+    lastKeyTime: 0,
+    letterHistory: [],
+    favorites: [],
+    sounds: [],
+    currentSoundIndex: 0,
+    lastSpawnTime: 0,
+    autoClearTimeoutId: null,
+  };
+
+  // === Helper: Save and load settings from localStorage ===
+  function saveSettings() {
+    const settingsToSave = {};
+    for (const [key, elem] of Object.entries(settingsControls)) {
+      if (elem.type === 'checkbox') {
+        settingsToSave[key] = elem.checked;
+      } else if (elem.type === 'range' || elem.type === 'color' || elem.tagName === 'SELECT' || elem.type === 'text') {
+        settingsToSave[key] = elem.value;
+      }
+    }
+    localStorage.setItem('asmrKeyboardSettings', JSON.stringify(settingsToSave));
+  }
+  function loadSettings() {
+    const saved = localStorage.getItem('asmrKeyboardSettings');
+    if (!saved) return;
+    try {
+      const parsed = JSON.parse(saved);
+      for (const [key, val] of Object.entries(parsed)) {
+        if (settingsControls[key]) {
+          const elem = settingsControls[key];
+          if (elem.type === 'checkbox') elem.checked = val;
+          else elem.value = val;
+        }
+      }
+    } catch(e) {
+      console.warn('Failed to load settings', e);
+    }
+  }
+
+  // === Apply settings to page UI ===
+  function applySettings() {
+    // Apply Z-Index
+    if (settingsControls.zBoost) {
+      letterContainer.style.zIndex = settingsControls.zBoost.value;
+    }
+
+    // Background
+    if (settingsControls.bgGradientToggle.checked) {
+      document.body.style.background = `linear-gradient(135deg, ${settingsControls.bgGradientStart.value}, ${settingsControls.bgGradientEnd.value})`;
+    } else {
+      document.body.style.background = settingsControls.bgColor.value;
+    }
+
+    // Accent color
+    document.documentElement.style.setProperty('--color-accent', settingsControls.accentColor.value);
+
+    // Font family
+    document.body.style.fontFamily = settingsControls.fontFamily.value;
+
+    // Clear and reapply letter container background for gradient fix
+    letterContainer.style.background = document.body.style.background;
+
+    // Show or hide FPS counter if implemented later
+    if (settingsControls.showFPS.checked) {
+      showFPSCounter();
+    } else {
+      hideFPSCounter();
+    }
+  }
+
+  // === Toggle settings panel ===
+  toggleSettingsBtn.addEventListener('click', () => {
+    const isShown = settingsPanel.classList.toggle('show');
+    if (isShown) settingsPanel.focus();
+  });
+
+  // === Handle input changes on all settings ===
+  for (const elem of Object.values(settingsControls)) {
+    if (!elem) continue;
+    elem.addEventListener('input', () => {
+      saveSettings();
+      applySettings();
+    });
+    if (elem.type === 'checkbox') {
+      elem.addEventListener('change', () => {
+        saveSettings();
+        applySettings();
+      });
+    }
+  }
+
+  // === Utility: Random integer in range [min, max] inclusive ===
+  function randInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  // === Utility: Random choice from array ===
+  function choice(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  // === Random letter generator (A-Z) ===
+  function randomLetter() {
+    const charCode = randInt(65, 90);
+    if (settingsControls.randomCaseToggle.checked) {
+      return Math.random() < 0.5 ? String.fromCharCode(charCode).toLowerCase() : String.fromCharCode(charCode);
+    }
+    return String.fromCharCode(charCode);
+  }
+
+  // === Random color generator ===
+  function randomColor() {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for(let i=0; i<6; i++) {
+      color += letters[Math.floor(Math.random()*16)];
+    }
+    return color;
+  }
+
+  // === Create floating letter ===
+  function createLetter(char) {
+    if (state.lettersOnScreen >= parseInt(settingsControls.maxLetters.value)) return null;
+
+    const letter = document.createElement('span');
+    letter.classList.add('floating-letter');
+    letter.textContent = char;
+
+    // Font size
+    let size = parseInt(settingsControls.fontSize.value);
+    if (settingsControls.randomizeSize.checked) {
+      size = randInt(Math.max(16, size - 40), size + 40);
+    }
+    letter.style.fontSize = size + 'px';
+    letter.style.fontWeight = settingsControls.fontWeight.value;
+
+    // Color
+    if (settingsControls.randomizeColor.checked) {
+      letter.style.color = randomColor();
+    } else {
+      letter.style.color = settingsControls.letterColor.value;
+    }
+
+    // Shadow / Glow
+    if (settingsControls.enableShadow.checked) {
+      letter.style.filter = `drop-shadow(0 0 ${settingsControls.glowIntensity.value}px ${settingsControls.letterShadowColor.value})`;
+    } else {
+      letter.style.filter = 'none';
+    }
+
+    // Border
+    const borderWidth = parseInt(settingsControls.letterBorderWidth.value);
+    if (borderWidth > 0) {
+      letter.style.border = `${borderWidth}px solid ${settingsControls.letterBorderColor.value}`;
+    } else {
+      letter.style.border = 'none';
+    }
+
+    // Blur
+    letter.style.filter += settingsControls.enableBlur.checked ? ' blur(1.2px)' : '';
+
+    // Opacity
+    letter.style.opacity = settingsControls.opacity.value;
+
+    // Letter spacing
+    letter.style.letterSpacing = settingsControls.letterSpacing.value + 'px';
+
+    // Position - random but avoiding overlap on spawn:
+    const containerRect = letterContainer.getBoundingClientRect();
+    const maxX = containerRect.width - size * 1.1;
+    const maxY = containerRect.height - size * 1.3;
+    let posX, posY;
+
+    // Snap to grid if enabled
+    if (settingsControls.gridSnap.checked) {
+      const gridSize = parseInt(settingsControls.gridSize.value);
+      posX = Math.floor(Math.random() * (maxX/gridSize)) * gridSize;
+      posY = Math.floor(Math.random() * (maxY/gridSize)) * gridSize;
+    } else {
+      posX = Math.random() * maxX;
+      posY = Math.random() * maxY;
+    }
+
+    letter.style.left = `${posX}px`;
+    letter.style.top = `${posY}px`;
+    letter.style.position = 'absolute';
+
+    // Animation style & duration
+    const animStyle = settingsControls.animationStyle.value;
+    const animDurationMs = parseInt(settingsControls.animationDuration.value) / parseFloat(settingsControls.animationSpeedMultiplier.value);
+
+    letter.style.animationName = animStyle;
+    letter.style.animationDuration = `${animDurationMs}ms`;
+    letter.style.animationTimingFunction = 'ease-out';
+    letter.style.animationFillMode = 'forwards';
+
+    if (settingsControls.reverseDirection.checked) {
+      letter.style.animationDirection = 'reverse';
+    } else {
+      letter.style.animationDirection = 'normal';
+    }
+
+    // Additional transform skew and rotation on animation start
+    const skewX = settingsControls.animationSkewX.value;
+    const skewY = settingsControls.animationSkewY.value;
+    letter.style.transform = `skew(${skewX}deg, ${skewY}deg)`;
+
+    // Letter bounce toggle animation
+    if (settingsControls.letterBounceToggle.checked) {
+      letter.style.animationName = 'bounce';
+      letter.style.animationDuration = '800ms';
+      letter.style.animationIterationCount = 'infinite';
+    }
+
+    
+    // Rotation
+    const rotation = parseInt(settingsControls.letterRotation?.value || '0');
+    if (!isNaN(rotation)) {
+      letter.style.transform += ` rotate(${rotation}deg)`;
+    }
+
+    // Z-Index Boost
+    const z = parseInt(settingsControls.zBoost?.value || '0');
+    letter.style.zIndex = z.toString();
+// Append letter to container
+    letterContainer.appendChild(letter);
+    state.lettersOnScreen++;
+
+    // Remove letter after animation ends
+    letter.addEventListener('animationend', () => {
+      letter.remove();
+      state.lettersOnScreen--;
+    });
+
+    return letter;
+  }
+
+  // === Sound Handling ===
+  const defaultSounds = [
+    'https://actions.google.com/sounds/v1/office/typewriter_key_click.ogg',
+    'https://actions.google.com/sounds/v1/office/keyboard_typing.ogg',
+    'https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg',
+  ];
+
+  function loadDefaultSounds() {
+    state.sounds = [];
+    defaultSounds.forEach(url => {
+      const audio = new Audio(url);
+      audio.volume = parseFloat(settingsControls.soundVolume.value);
+      audio.playbackRate = parseFloat(settingsControls.soundPlaybackRate.value);
+      state.sounds.push(audio);
+    });
+    renderSoundList();
+  }
+
+  function renderSoundList() {
+    settingsControls.soundList.innerHTML = '';
+    state.sounds.forEach((audio, i) => {
+      const div = document.createElement('div');
+      div.className = 'sound-entry';
+      const span = document.createElement('span');
+      span.textContent = `Sound ${i+1}`;
+      const favBtn = document.createElement('button');
+      favBtn.textContent = '⭐';
+      favBtn.className = 'favorite' + (state.currentSoundIndex === i ? ' active' : '');
+      favBtn.title = 'Select this sound';
+      favBtn.addEventListener('click', () => {
+        state.currentSoundIndex = i;
+        renderSoundList();
+      });
+      div.appendChild(span);
+      div.appendChild(favBtn);
+      settingsControls.soundList.appendChild(div);
+    });
+  }
+
+  settingsControls.soundVolume.addEventListener('input', () => {
+    const vol = parseFloat(settingsControls.soundVolume.value);
+    state.sounds.forEach(audio => audio.volume = vol);
+  });
+  settingsControls.soundPlaybackRate.addEventListener('input', () => {
+    const rate = parseFloat(settingsControls.soundPlaybackRate.value);
+    state.sounds.forEach(audio => audio.playbackRate = rate);
+  });
+
+  settingsControls.uploadSound.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    const audio = new Audio(url);
+    audio.volume = parseFloat(settingsControls.soundVolume.value);
+    audio.playbackRate = parseFloat(settingsControls.soundPlaybackRate.value);
+    state.sounds.push(audio);
+    renderSoundList();
+  });
+
+  // === Play sound on letter spawn ===
+  function playSound() {
+    if (!settingsControls.enableSound.checked) return;
+    const audio = state.sounds[state.currentSoundIndex];
+    if (!audio) return;
+    audio.currentTime = 0;
+    audio.play().catch(() => {});
+  }
+
+  // === Vibrate on key if enabled ===
+  function vibrate() {
+    if (settingsControls.vibrateOnKey.checked && navigator.vibrate) {
+      navigator.vibrate(50);
+    }
+  }
+
+  // === FPS counter (basic) ===
+  let fpsInterval, then, startTime, frameCount;
+  const fpsDisplay = document.createElement('div');
+  fpsDisplay.style.position = 'fixed';
+  fpsDisplay.style.bottom = '10px';
+  fpsDisplay.style.right = '10px';
+  fpsDisplay.style.color = 'lime';
+  fpsDisplay.style.fontFamily = 'monospace';
+  fpsDisplay.style.fontSize = '1.2rem';
+  fpsDisplay.style.zIndex = '2000';
+  fpsDisplay.style.background = 'rgba(0,0,0,0.6)';
+  fpsDisplay.style.padding = '4px 8px';
+  fpsDisplay.style.borderRadius = '6px';
+  let fpsVisible = false;
+
+  function showFPSCounter() {
+    if (!fpsVisible) {
+      document.body.appendChild(fpsDisplay);
+      fpsVisible = true;
+      startFPSCounter();
+    }
+  }
+  function hideFPSCounter() {
+    if (fpsVisible) {
+      document.body.removeChild(fpsDisplay);
+      fpsVisible = false;
+      stopFPSCounter();
+    }
+  }
+  function startFPSCounter() {
+    fpsInterval = 1000 / 60;
+    then = Date.now();
+    startTime = then;
+    frameCount = 0;
+    requestAnimationFrame(fpsLoop);
+  }
+  function stopFPSCounter() {
+    fpsInterval = null;
+  }
+  function fpsLoop() {
+    if (!fpsInterval) return;
+    requestAnimationFrame(fpsLoop);
+    const now = Date.now();
+    const elapsed = now - then;
+    if (elapsed > fpsInterval) {
+      then = now - (elapsed % fpsInterval);
+      const sinceStart = now - startTime;
+      frameCount++;
+      const fps = Math.round((frameCount / sinceStart) * 1000);
+      fpsDisplay.textContent = `FPS: ${fps}`;
+    }
+  }
+
+  // === Auto clear letters ===
+  function scheduleAutoClear() {
+    if (state.autoClearTimeoutId) clearTimeout(state.autoClearTimeoutId);
+    if (!settingsControls.autoClearToggle.checked) return;
+    state.autoClearTimeoutId = setTimeout(() => {
+      clearLetters();
+    }, parseInt(settingsControls.autoClearCooldown.value));
+  }
+  function clearLetters() {
+    letterContainer.innerHTML = '';
+    state.lettersOnScreen = 0;
+  }
+
+  // === Letter spawn throttling ===
+  let lastSpawn = 0;
+  const cooldownMs = () => parseInt(settingsControls.cooldown.value);
+
+  // === Letters spawn on keypress ===
+  window.addEventListener('keydown', e => {
+    const now = Date.now();
+
+    // Throttle spawn by cooldown
+    if (now - lastSpawn < cooldownMs()) return;
+
+    // Ignore modifier keys
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+    // Only letters A-Z
+    let char = e.key;
+    if (char.length !== 1) return;
+    if (!char.match(/[a-z]/i)) return;
+
+    lastSpawn = now;
+    if (settingsControls.randomCaseToggle.checked) {
+      char = Math.random() < 0.5 ? char.toLowerCase() : char.toUpperCase();
+    } else {
+      char = char.toUpperCase();
+    }
+
+    const letter = createLetter(char);
+    if (letter) {
+      playSound();
+      vibrate();
+      state.letterHistory.push(char);
+      updateHistoryUI();
+      scheduleAutoClear();
+    }
+  });
+
+  // === Word typing mode (auto) ===
+  let wordTypingInterval = null;
+  function startWordTyping() {
+    if (wordTypingInterval) clearInterval(wordTypingInterval);
+    if (!settingsControls.typeWords.checked) return;
+
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+    const intervalMs = 1000 / parseInt(settingsControls.wordSpeed.value);
+    wordTypingInterval = setInterval(() => {
+      if (state.lettersOnScreen >= parseInt(settingsControls.maxLetters.value)) return;
+
+      let char = choice(letters);
+      if (settingsControls.randomCaseToggle.checked) {
+        char = Math.random() < 0.5 ? char.toLowerCase() : char.toUpperCase();
+      }
+      createLetter(char);
+      playSound();
+      vibrate();
+      scheduleAutoClear();
+    }, intervalMs);
+  }
+  settingsControls.typeWords.addEventListener('change', () => {
+    startWordTyping();
+  });
+  settingsControls.wordSpeed.addEventListener('input', () => {
+    startWordTyping();
+  });
+
+  // === Letter history and favorites UI ===
+  function updateHistoryUI() {
+    settingsControls.historyList.innerHTML = '';
+    state.letterHistory.slice(-20).reverse().forEach(ch => {
+      const span = document.createElement('span');
+      span.textContent = ch + ' ';
+      span.style.fontWeight = 'bold';
+      span.style.color = settingsControls.accentColor.value;
+      settingsControls.historyList.appendChild(span);
+    });
+  }
+  function updateFavoritesUI() {
+    settingsControls.favoritesList.innerHTML = '';
+    state.favorites.forEach(ch => {
+      const btn = document.createElement('button');
+      btn.textContent = ch;
+      btn.style.margin = '0 5px';
+      btn.style.padding = '0.3rem 0.6rem';
+      btn.style.fontWeight = 'bold';
+      btn.style.color = settingsControls.accentColor.value;
+      btn.style.background = 'transparent';
+      btn.style.border = '1px solid ' + settingsControls.accentColor.value;
+      btn.style.borderRadius = '6px';
+      btn.style.cursor = 'pointer';
+      btn.addEventListener('click', () => {
+        createLetter(ch);
+        playSound();
+        vibrate();
+        scheduleAutoClear();
+      });
+      settingsControls.favoritesList.appendChild(btn);
+    });
+  }
+
+  // === Initialization ===
+  loadSettings();
+  applySettings();
+  loadDefaultSounds();
+  updateFavoritesUI();
+  updateHistoryUI();
+  startWordTyping();
+
+  // Save settings when page unloads
+  window.addEventListener('beforeunload', saveSettings);
+
+})();
+
+// === Fullscreen Panel Toggle ===
+function applyPanelDisplayMode() {
+  const mode = document.getElementById('panelDisplayMode')?.value;
+  const panel = document.getElementById('settings-panel');
+  if (!panel) return;
+  if (mode === 'fullscreen') {
+    panel.classList.add('fullscreen');
+  } else {
+    panel.classList.remove('fullscreen');
+  }
+}
+document.getElementById('panelDisplayMode')?.addEventListener('change', () => {
+  applyPanelDisplayMode();
+  saveSettings();
+});
+
+// === Simple Mode Toggle ===
+
+function applySimpleMode() {
+  const simple = document.getElementById('simpleModeToggle')?.checked;
+  const allowed = ['Presets & Settings', 'Appearance', 'Sound & Vibration'];
+  document.querySelectorAll('.setting-group').forEach(group => {
+    const summary = group.querySelector('summary');
+    if (!summary) return;
+    const visible = allowed.includes(summary.textContent.trim());
+    group.style.display = (simple && !visible) ? 'none' : '';
+  });
+}
+
+document.getElementById('simpleModeToggle')?.addEventListener('change', () => {
+  applySimpleMode();
+  saveSettings();
+});
+
+// === Drag to move settings panel ===
+
+
+// === Fullscreen and Simple Mode Fix ===
+function applyPanelDisplayMode() {
+  const mode = document.getElementById('panelDisplayMode')?.value;
+  const panel = document.getElementById('settings-panel');
+  if (!panel) return;
+  if (mode === 'fullscreen') {
+    panel.classList.add('fullscreen');
+  } else {
+    panel.classList.remove('fullscreen');
+    panel.style.left = '0px';  // Reset left after drag
+    panel.style.top = '0px';   // Reset top after drag
+  }
+}
+
+
+function applySimpleMode() {
+  const simple = document.getElementById('simpleModeToggle')?.checked;
+  const allowed = ['Presets & Settings', 'Appearance', 'Sound & Vibration'];
+  document.querySelectorAll('.setting-group').forEach(group => {
+    const summary = group.querySelector('summary');
+    if (!summary) return;
+    const visible = allowed.includes(summary.textContent.trim());
+    group.style.display = (simple && !visible) ? 'none' : '';
+  });
+}
+
+
+// === Ensure event listeners bind AFTER DOMContentLoaded ===
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('panelDisplayMode')?.addEventListener('change', () => {
+    applyPanelDisplayMode();
+    saveSettings();
+  });
+  document.getElementById('simpleModeToggle')?.addEventListener('change', () => {
+    applySimpleMode();
+    saveSettings();
+  });
+
+  // === Drag-to-Move Support for Fullscreen Panel ===
+  const panel = document.getElementById('settings-panel');
+  let isDragging = false, offsetX = 0, offsetY = 0;
+
+  panel.addEventListener('mousedown', e => {
+    if (!panel.classList.contains('fullscreen')) return;
+    isDragging = true;
+    offsetX = e.clientX - panel.offsetLeft;
+    offsetY = e.clientY - panel.offsetTop;
+    panel.style.cursor = 'grabbing';
+  });
+
+  window.addEventListener('mouseup', () => {
+    isDragging = false;
+    panel.style.cursor = '';
+  });
+
+  window.addEventListener('mousemove', e => {
+    if (!isDragging || !panel.classList.contains('fullscreen')) return;
+    panel.style.left = `${e.clientX - offsetX}px`;
+    panel.style.top = `${e.clientY - offsetY}px`;
+  });
+
+  // Apply panel and simple mode after loading
+  applyPanelDisplayMode();
+  applySimpleMode();
+});
+
+document.getElementById("saveSettingsBtn").addEventListener("click", () => {
+  const data = {};
+  for (const [key, elem] of Object.entries(settingsControls)) {
+    if (!elem) continue;
+    if (elem.type === "checkbox") data[key] = elem.checked;
+    else data[key] = elem.value;
+  }
+  localStorage.setItem("keyboardPreset", JSON.stringify(data));
+  alert("Settings saved!");
+});
+
+document.getElementById("loadSettingsBtn").addEventListener("click", () => {
+  const saved = localStorage.getItem("keyboardPreset");
+  if (!saved) return alert("No preset found.");
+  const parsed = JSON.parse(saved);
+  for (const [key, val] of Object.entries(parsed)) {
+    const elem = settingsControls[key];
+    if (!elem) continue;
+    if (elem.type === "checkbox") elem.checked = val;
+    else elem.value = val;
+  }
+  applySettings();
+  applyPanelDisplayMode();
+  applySimpleMode();
+  alert("Settings loaded!");
+});
+
+document.getElementById("resetSettingsBtn").addEventListener("click", () => {
+  localStorage.removeItem("keyboardPreset");
+  location.reload();
+});
+
+
+function saveCurrentSettings() {
+  const data = {};
+  for (const [key, elem] of Object.entries(settingsControls)) {
+    if (!elem) continue;
+    if (elem.type === "checkbox") data[key] = elem.checked;
+    else data[key] = elem.value;
+  }
+  localStorage.setItem("keyboardPreset", JSON.stringify(data));
+  alert("Settings saved successfully.");
+}
+
+function loadCurrentSettings() {
+  const saved = localStorage.getItem("keyboardPreset");
+  if (!saved) return alert("No saved preset found.");
+  try {
+    const data = JSON.parse(saved);
+    for (const [key, val] of Object.entries(data)) {
+      if (!(key in settingsControls)) continue;
+      const elem = settingsControls[key];
+      if (elem.type === "checkbox") elem.checked = val;
+      else elem.value = val;
+    }
+    applySettings();
+    applyPanelDisplayMode();
+    applySimpleMode();
+    alert("Settings loaded.");
+  } catch (e) {
+    console.error("Failed to load settings:", e);
+    alert("Could not load settings.");
+  }
+}
+
+function resetSettings() {
+  localStorage.removeItem("keyboardPreset");
+  location.reload();
+}
+
+document.getElementById("saveSettingsBtn")?.addEventListener("click", saveCurrentSettings);
+document.getElementById("loadSettingsBtn")?.addEventListener("click", loadCurrentSettings);
+document.getElementById("resetSettingsBtn")?.addEventListener("click", resetSettings);
+
+
+function saveCurrentSettings() {
+  try {
+    const data = {};
+    for (const [key, elem] of Object.entries(settingsControls)) {
+      if (!elem) continue;
+      if (elem.type === "checkbox") data[key] = elem.checked;
+      else data[key] = elem.value;
+    }
+    localStorage.setItem("keyboardPreset", JSON.stringify(data));
+    console.log("Settings saved:", data);
+    alert("Settings saved successfully.");
+  } catch (e) {
+    console.error("Save failed:", e);
+    alert("Save failed.");
+  }
+}
+
+function loadCurrentSettings() {
+  const saved = localStorage.getItem("keyboardPreset");
+  if (!saved) {
+    alert("No saved settings found.");
+    return;
+  }
+  try {
+    const data = JSON.parse(saved);
+    console.log("Loaded settings:", data);
+    for (const [key, val] of Object.entries(data)) {
+      if (!(key in settingsControls)) continue;
+      const elem = settingsControls[key];
+      if (!elem) continue;
+      if (elem.type === "checkbox") elem.checked = val;
+      else elem.value = val;
+    }
+    applySettings();
+    applyPanelDisplayMode();
+    applySimpleMode();
+    alert("Settings loaded successfully.");
+  } catch (e) {
+    console.error("Load failed:", e);
+    alert("Load failed.");
+  }
+}
+
+function resetSettings() {
+  localStorage.removeItem("keyboardPreset");
+  alert("Settings reset. Reloading...");
+  location.reload();
+}
+
+document.getElementById("saveSettingsBtn")?.addEventListener("click", saveCurrentSettings);
+document.getElementById("loadSettingsBtn")?.addEventListener("click", loadCurrentSettings);
+document.getElementById("resetSettingsBtn")?.addEventListener("click", resetSettings);
+
+
+// === Save, Load, Reset Settings ===
+function saveCurrentSettings() {
+  const data = {};
+  for (const [key, elem] of Object.entries(settingsControls)) {
+    if (!elem) continue;
+    if (elem.type === "checkbox") data[key] = elem.checked;
+    else data[key] = elem.value;
+  }
+  localStorage.setItem("keyboardPreset", JSON.stringify(data));
+  console.log("Saved settings to localStorage:", data);
+  alert("Settings saved successfully.");
+}
+
+function loadCurrentSettings() {
+  const saved = localStorage.getItem("keyboardPreset");
+  if (!saved) return alert("No saved settings found.");
+  try {
+    const parsed = JSON.parse(saved);
+    for (const [key, val] of Object.entries(parsed)) {
+      const elem = settingsControls[key];
+      if (!elem) continue;
+      if (elem.type === "checkbox") elem.checked = val;
+      else elem.value = val;
+    }
+    applySettings();
+    applyPanelDisplayMode();
+    applySimpleMode();
+    alert("Settings loaded.");
+  } catch (e) {
+    console.error("Failed to load saved settings", e);
+    alert("Failed to load settings.");
+  }
+}
+
+function resetSettings() {
+  localStorage.removeItem("keyboardPreset");
+  alert("Settings reset. Reloading...");
+  location.reload();
+}
+
+// === Built-in Presets ===
+const builtInPresets = {
+  "Neon Glow": {
+    bgGradientToggle: true,
+    bgGradientStart: "#000000",
+    bgGradientEnd: "#111111",
+    letterColor: "#00ffff",
+    letterShadowColor: "#00ffff",
+    enableShadow: true,
+    glowIntensity: 10,
+    animationStyle: "floatUp",
+    enableTrail: true
+  },
+  "Minimal White": {
+    bgGradientToggle: false,
+    bgColor: "#ffffff",
+    letterColor: "#000000",
+    enableShadow: false,
+    glowIntensity: 0,
+    enableTrail: false,
+    animationStyle: "bounce"
+  },
+  "Vibrant Chaos": {
+    randomizeColor: true,
+    randomizeSize: true,
+    enableShadow: true,
+    glowIntensity: 8,
+    animationStyle: "rotateFade",
+    animationSpeedMultiplier: 2,
+    enableTrail: true,
+    waveMode: true
+  }
+};
+
+function applyPreset(name) {
+  const preset = builtInPresets[name];
+  if (!preset) return alert("Preset not found.");
+  for (const [key, val] of Object.entries(preset)) {
+    const elem = settingsControls[key];
+    if (!elem) continue;
+    if (elem.type === "checkbox") elem.checked = val;
+    else elem.value = val;
+  }
+  applySettings();
+  applyPanelDisplayMode();
+  applySimpleMode();
+  alert(`Preset "${name}" applied.`);
+}
+
+document.getElementById("saveSettingsBtn")?.addEventListener("click", saveCurrentSettings);
+document.getElementById("loadSettingsBtn")?.addEventListener("click", loadCurrentSettings);
+document.getElementById("resetSettingsBtn")?.addEventListener("click", resetSettings);
+document.getElementById("presetSelect")?.addEventListener("change", e => {
+  if (e.target.value !== "") applyPreset(e.target.value);
+});
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const scoreCount = document.getElementById("scoreCount");
+  const wpmCount = document.getElementById("wpmCount");
+  const highScoreEl = document.getElementById("highScore");
+  let score = 0;
+  let wordCount = 0;
+  let startTime = Date.now();
+
+  const savedHigh = parseInt(localStorage.getItem("highScore") || "0");
+  highScoreEl.textContent = savedHigh;
+
+  function updateStats() {
+    scoreCount.textContent = score;
+    const elapsedMin = (Date.now() - startTime) / 60000;
+    const wpm = Math.round((wordCount / elapsedMin) || 0);
+    wpmCount.textContent = wpm;
+
+    if (score > savedHigh) {
+      localStorage.setItem("highScore", score);
+      highScoreEl.textContent = score;
+    }
+  }
+
+  function registerKey(letter) {
+    if (!letter.match(/[a-zA-Z]/)) return;
+    score++;
+    wordCount += 1 / 5;
+    updateStats();
+  }
+
+  window.addEventListener("keydown", (e) => {
+    registerKey(e.key);
+  });
+});
+</script><script>
+document.addEventListener("DOMContentLoaded", () => {
+  const panelMode = document.getElementById("panelDisplayMode");
+  if (panelMode) {
+    panelMode.addEventListener("change", () => {
+      if (panelMode.value === "fullscreen") {
+        document.querySelectorAll("#settings-panel details.collapsible-group").forEach(detail => {
+          detail.open = false;
+        });
+      }
+    });
+  }
+});
+</script></body></html>
+<!-- Fixed Score Panel -->
+<div id="scorePanel" style="position:fixed;top:10px;right:10px;z-index:10000;color:#0f0;background:rgba(0,0,0,0.6);padding:8px 12px;border-radius:8px;font-size:1rem;">
+  Score: <span id="scoreCount">0</span><br/>
+  WPM: <span id="wpmCount">0</span><br/>
+  High Score: <span id="highScore">0</span>
+</div>
